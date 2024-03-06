@@ -124,22 +124,30 @@ int main() {
 
     int tocou = 0;
     int j;
-
+    int time_start;
 
     while (true) {
 
+        int vec_random[nivel+4];
+
         if (!tocou) {
+            time_start = to_ms_since_boot(get_absolute_time());
+            srand(time_start);
+
             for (int i = 0; i < 4+nivel; i++) {
-                j = i%4;
+                j = rand() %4;
+                vec_random[i] = j;
                 led_buzzer(vec_ordem[j], BUZZER, time, fs[j]);
             }
             tocou = 1;
         }
 
+        j = vec_random[count];
+
         if (btnf_red) {
             led_buzzer(LED_RED, BUZZER, time, f_red);
             btnf_red = 0;
-            if (vec_ordem[count%4] != LED_RED) {
+            if (vec_ordem[j] != LED_RED) {
                 printf("Voce perdeu");
                 nivel = 0;
                 count = 0;
@@ -151,7 +159,7 @@ int main() {
         if (btnf_blue) {
             led_buzzer(LED_BLUE, BUZZER, time, f_blue);
             btnf_blue = 0;
-            if (vec_ordem[count%4] != LED_BLUE) {
+            if (vec_ordem[j] != LED_BLUE) {
                 printf("Voce perdeu");
                 nivel = 0;
                 count = 0;
@@ -163,7 +171,7 @@ int main() {
         if (btnf_green) {
             led_buzzer(LED_GREEN, BUZZER, time, f_green);
             btnf_green = 0;
-            if (vec_ordem[count%4] != LED_GREEN) {
+            if (vec_ordem[j] != LED_GREEN) {
                 printf("Voce perdeu");
                 nivel = 0;
                 count = 0;
@@ -175,7 +183,7 @@ int main() {
         if (btnf_yellow) {
             led_buzzer(LED_YELLOW, BUZZER, time, f_yellow);
             btnf_yellow = 0;
-            if (vec_ordem[count%4] != LED_YELLOW) {
+            if (vec_ordem[j] != LED_YELLOW) {
                 printf("Voce perdeu");
                 nivel = 0;
                 count = 0;
