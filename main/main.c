@@ -5,25 +5,42 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
-const int BTN_RED = 13;
-const int BTN_BLUE = 11;
-const int BTN_GREEN = 12;
-const int BTN_YELLOW = 10;
+const int BTN_RED = 26;
+const int BTN_BLUE = 5;
+const int BTN_GREEN = 7;
+const int BTN_YELLOW = 27;
 
-const int LED_RED = 9;
-const int LED_BLUE = 7;
-const int LED_GREEN = 8;
-const int LED_YELLOW = 6;
+const int BTN_PLAY = 22;
 
-const int BUZZER = 14;
+const int LED_RED = 19;
+const int LED_BLUE = 3;
+const int LED_GREEN = 6;
+const int LED_YELLOW = 20;
+
+const int LED_PLAY = 13;
+
+const int BUZZER = 15;
 
 volatile int btnf_red= 0;
 volatile int btnf_blue = 0;
 volatile int btnf_green = 0;
 volatile int btnf_yellow = 0;
+volatile int btnf_play = 0;
+
+const float time = 0.5;
+
+const int f_red = 495;
+const int f_blue = 440;
+const int f_green = 396;
+const int f_yellow = 352;
+
+const int vec_ordem[4] = {LED_RED, LED_YELLOW, LED_GREEN, LED_BLUE};
+
+const int fs[4] = {f_red, f_yellow, f_green, f_blue};
 
 void pin_init() {
     gpio_init(BUZZER);
@@ -41,6 +58,9 @@ void pin_init() {
     gpio_init(LED_YELLOW);
     gpio_set_dir(LED_YELLOW, GPIO_OUT);
 
+    gpio_init(LED_PLAY);
+    gpio_set_dir(LED_PLAY, GPIO_OUT);
+
     gpio_init(BTN_RED);
     gpio_set_dir(BTN_RED, GPIO_IN);
     gpio_pull_up(BTN_RED);
@@ -56,6 +76,10 @@ void pin_init() {
     gpio_init(BTN_YELLOW);
     gpio_set_dir(BTN_YELLOW, GPIO_IN);
     gpio_pull_up(BTN_YELLOW);
+
+    gpio_init(BTN_PLAY);
+    gpio_set_dir(BTN_PLAY, GPIO_IN);
+    gpio_pull_up(BTN_PLAY);
 }
 
 void btn_callback(uint gpio, uint32_t events) {
@@ -71,6 +95,9 @@ void btn_callback(uint gpio, uint32_t events) {
     if (events == 0x4 && gpio == BTN_YELLOW) {
         btnf_yellow = 1;
     }
+    if (events == 0x4 && gpio == BTN_PLAY) {
+        btnf_play = 1;
+    }
 }
 
 void led_buzzer(int led, int buzzer, float time, int frequency) {
@@ -85,30 +112,89 @@ void led_buzzer(int led, int buzzer, float time, int frequency) {
     gpio_put(led, 0);
 
 }
-void sound(int buzzer,float time, int frequency){
-    int delay = 1e6/(2*frequency);
-    for (int i = 0; i < time*frequency; i++) {
-      gpio_put(buzzer, 1);
-      sleep_us(delay);
-      gpio_put(buzzer, 0);
-      sleep_us(delay);
+
+void form_level(int vec[], int n, int time_start) {
+    printf("tocando");
+    srand(time_start);
+    int j;
+
+    for (int i = 0; i < n; i++) {
+        j = rand() %4;
+        vec[i] = j;
+        led_buzzer(vec_ordem[j], BUZZER, time, fs[j]);
     }
 }
 
+void game(int vec[], int n, int nivel) {
+    int game_on = 1;
+    int count = 0;
+    int j;
+    while (game_on) {
+        j = vec[count];
+        if (btnf_red) {
+            printf("red");
+            led_buzzer(LED_RED, BUZZER, time, f_red);
+            btnf_red = 0;
+            if (vec_ordem[j] != LED_RED) {
+                printf("Voce perdeu");
+                nivel = 0;
+                game_on = 0;
+                count = 0;
+                sleep_ms(2000);
+            }
+            count ++;
+        }
+        if (btnf_blue) {
+            printf("blue");
+            led_buzzer(LED_BLUE, BUZZER, time, f_blue);
+            btnf_blue = 0;
+            if (vec_ordem[j] != LED_BLUE) {
+                printf("Voce perdeu");
+                nivel = 0;
+                game_on = 0;
+                count = 0;
+                sleep_ms(2000);
+            }
+            count ++;
+        }
+        if (btnf_green) {
+            printf("green");
+            led_buzzer(LED_GREEN, BUZZER, time, f_green);
+            btnf_green = 0;
+            if (vec_ordem[j] != LED_GREEN) {
+                printf("Voce perdeu");
+                nivel = 0;
+                game_on = 0;
+                count = 0;
+                sleep_ms(2000);
+            }
+            count ++;
+        }
+        if (btnf_yellow) {
+            printf("yellow");
+            led_buzzer(LED_YELLOW, BUZZER, time, f_yellow);
+            btnf_yellow = 0;
+            if (vec_ordem[j] != LED_YELLOW) {
+                printf("Voce perdeu");
+                game_on = 0;
+                nivel = 0;
+                count = 0;
+                sleep_ms(2000);
+            }
+            count ++;
+        }
+
+        if (count == 4+nivel) {
+            printf("Voce ganhou esse nivel");
+            nivel ++;
+            game_on = 0;
+            count = 0;
+            sleep_ms(2000);
+        }
+    }
+}
 int main() {
 
-    float time = 0.5;
-
-    int f_red = 495;
-    int f_blue = 440;
-    int f_green = 396;
-    int f_yellow = 352;
-
-    int vec_ordem[4] = {LED_RED, LED_YELLOW, LED_GREEN, LED_BLUE};
-
-    int fs[4] = {f_red, f_yellow, f_green, f_blue};
-
-    int count = 0;
     int nivel = 0;
 
     stdio_init_all();
@@ -121,85 +207,20 @@ int main() {
     gpio_set_irq_enabled(BTN_BLUE, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(BTN_GREEN, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(BTN_YELLOW, GPIO_IRQ_EDGE_FALL, true);
+    gpio_set_irq_enabled(BTN_PLAY, GPIO_IRQ_EDGE_FALL, true);
 
-    int tocou = 0;
-    int j;
     int time_start;
 
     while (true) {
 
-        int vec_random[nivel+4];
+        int vec_random[4+nivel];
 
-        if (!tocou) {
+
+        if (btnf_play) {
             time_start = to_ms_since_boot(get_absolute_time());
-            srand(time_start);
-
-            for (int i = 0; i < 4+nivel; i++) {
-                j = rand() %4;
-                vec_random[i] = j;
-                led_buzzer(vec_ordem[j], BUZZER, time, fs[j]);
-            }
-            tocou = 1;
+            form_level(vec_random, 4+nivel, time_start);
+            game(vec_random, nivel+4, nivel);
+            btnf_play = 0;
         }
-
-        j = vec_random[count];
-
-        if (btnf_red) {
-            led_buzzer(LED_RED, BUZZER, time, f_red);
-            btnf_red = 0;
-            if (vec_ordem[j] != LED_RED) {
-                printf("Voce perdeu");
-                nivel = 0;
-                count = 0;
-                tocou = 0;
-                sleep_ms(2000);
-            }
-            count ++;
-        }
-        if (btnf_blue) {
-            led_buzzer(LED_BLUE, BUZZER, time, f_blue);
-            btnf_blue = 0;
-            if (vec_ordem[j] != LED_BLUE) {
-                printf("Voce perdeu");
-                nivel = 0;
-                count = 0;
-                tocou = 0;
-                sleep_ms(2000);
-            }
-            count ++;
-        }
-        if (btnf_green) {
-            led_buzzer(LED_GREEN, BUZZER, time, f_green);
-            btnf_green = 0;
-            if (vec_ordem[j] != LED_GREEN) {
-                printf("Voce perdeu");
-                nivel = 0;
-                count = 0;
-                tocou = 0;
-                sleep_ms(2000);
-            }
-            count ++;
-        }
-        if (btnf_yellow) {
-            led_buzzer(LED_YELLOW, BUZZER, time, f_yellow);
-            btnf_yellow = 0;
-            if (vec_ordem[j] != LED_YELLOW) {
-                printf("Voce perdeu");
-                nivel = 0;
-                count = 0;
-                tocou = 0;
-                sleep_ms(2000);
-            }
-            count ++;
-        }
-
-        if (count == 4+nivel) {
-            printf("Voce ganhou esse nivel");
-            nivel ++;
-            count = 0;
-            tocou = 0;
-            sleep_ms(2000);
-        }
-
     }
 }
