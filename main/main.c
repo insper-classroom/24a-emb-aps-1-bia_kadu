@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
-#include "hardware/gpio.h"
 #include <hardware/flash.h>
 
 # define FLASH_WRITE_START (PICO_FLASH_SIZE_BYTES - 4096);
@@ -41,6 +40,8 @@ const int f_red = 495;
 const int f_blue = 440;
 const int f_green = 396;
 const int f_yellow = 352;
+
+const vec_random[100];
 
 const int leds[4] = {LED_RED, LED_YELLOW, LED_GREEN, LED_BLUE};
 
