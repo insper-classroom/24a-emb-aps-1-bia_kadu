@@ -34,6 +34,7 @@ volatile int btnf_blue = 0;
 volatile int btnf_green = 0;
 volatile int btnf_yellow = 0;
 volatile int btnf_play = 0;
+volatile bool timer_fired = false;
 
 const float time = 0.5;
 
@@ -104,6 +105,11 @@ void btn_callback(uint gpio, uint32_t events) {
     }
 }
 
+int64_t alarm_callback(alarm_id_t id, void *user_data) {
+    timer_fired = true;
+    return 0;
+}
+
 void led_buzzer(int led, int buzzer, float time, int frequency) {
     gpio_put(led, 1);
     int delay = 1e6/(2*frequency);
@@ -148,10 +154,14 @@ void form_level(int vec[], int nivel, int time_start) {
 int phase(const int vec[], int n) {
     int count = 0;
 
+    timer_fired = false;
     btnf_red = 0;
     btnf_yellow = 0;
     btnf_green = 0;
     btnf_blue = 0;
+
+    alarm_id_t alarm = 0;
+    alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
 
     while (true) {
         int j = vec[count];
@@ -164,6 +174,9 @@ int phase(const int vec[], int n) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
                 return true;
+            } else if (!timer_fired) {
+                cancel_alarm(alarm);
+                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
             }
             count++;
         }
@@ -176,6 +189,9 @@ int phase(const int vec[], int n) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
                 return true;
+            } else if (!timer_fired) {
+                cancel_alarm(alarm);
+                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
             }
             count++;
         }
@@ -188,6 +204,9 @@ int phase(const int vec[], int n) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
                 return true;
+            } else if (!timer_fired) {
+                cancel_alarm(alarm);
+                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
             }
             count++;
         }
@@ -200,8 +219,16 @@ int phase(const int vec[], int n) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
                 return true;
+            } else if (!timer_fired) {
+                cancel_alarm(alarm);
+                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
             }
             count++;
+        }
+
+        if (timer_fired) {
+            printf("TImer: Voce perdeu");
+            return true;
         }
 
         if (count == n) {
