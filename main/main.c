@@ -41,8 +41,6 @@ const int f_blue = 440;
 const int f_green = 396;
 const int f_yellow = 352;
 
-const vec_random[100];
-
 const int leds[4] = {LED_RED, LED_YELLOW, LED_GREEN, LED_BLUE};
 
 const int fs[4] = {f_red, f_yellow, f_green, f_blue};
