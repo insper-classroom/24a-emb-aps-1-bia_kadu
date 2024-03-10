@@ -42,8 +42,6 @@ const int f_blue = 440;
 const int f_green = 396;
 const int f_yellow = 352;
 
-int vec_random[100];
-
 const int leds[4] = {LED_RED, LED_YELLOW, LED_GREEN, LED_BLUE};
 
 const int fs[4] = {f_red, f_yellow, f_green, f_blue};
@@ -120,7 +118,7 @@ void led_buzzer(int led, int buzzer, float time, int frequency) {
 
 }
 
-void form_level(int nivel, int time_start) {
+void form_level(int *vec, int nivel, int time_start) {
     int i;
     int j;
     if (nivel == 0){
@@ -128,7 +126,7 @@ void form_level(int nivel, int time_start) {
 
         for (i = 0; i < 4; i++) {
             j = rand() %4;
-            vec_random[i] = j;
+            vec[i] = j;
             printf("%d", j);
             led_buzzer(leds[j], BUZZER, time, fs[j]);
         }
@@ -136,10 +134,10 @@ void form_level(int nivel, int time_start) {
 
     } else {
         j = rand() %4;
-        vec_random[3+nivel] = j;
+        vec[3+nivel] = j;
 
         for (i = 0; i < 4+nivel; i++) {
-            j = vec_random[i];
+            j = vec[i];
             printf("%d", j);
             led_buzzer(leds[j], BUZZER, time, fs[j]);
         }
@@ -267,15 +265,16 @@ int main() {
     int lost;
     int nivel = 0;
     int time_start;
+    int vec_random[100];
 
     while (true) {
         if (!btnf_play) {
             time_start = hold();
         }
-        form_level(nivel, time_start);
+        form_level(vec_random, nivel, time_start);
         lost = phase(vec_random, nivel+4);
         if (lost) {
-            check_record(nivel);
+            check_record(nivel-1);
             nivel = 0;
             btnf_play = 0;
         } else {
