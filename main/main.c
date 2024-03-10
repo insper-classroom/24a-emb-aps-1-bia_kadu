@@ -118,9 +118,9 @@ void led_buzzer(int led, int buzzer, float time, int frequency) {
 
 }
 
-void form_level(int *vec[], int nivel, int time_start) {
+void form_level(int vec[], int nivel, int time_start) {
     int i;
-    short j;
+    int j;
     if (nivel == 0){
         srand(time_start);
 
@@ -145,7 +145,7 @@ void form_level(int *vec[], int nivel, int time_start) {
     }
 }
 
-int phase(int *vec[], int n) {
+int phase(const int vec[], int n) {
     int count = 0;
 
     btnf_red = 0;
@@ -153,9 +153,8 @@ int phase(int *vec[], int n) {
     btnf_green = 0;
     btnf_blue = 0;
 
-    int j;
     while (true) {
-        j = vec[count];
+        int j = vec[count];
 
         if (btnf_red) {
             printf("red");
@@ -261,12 +260,12 @@ int main() {
     gpio_set_irq_enabled(BTN_YELLOW, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(BTN_PLAY, GPIO_IRQ_EDGE_FALL, true);
 
-    bool lost;
     int nivel = 0;
     int time_start;
     int vec_random[100];
 
     while (true) {
+        bool lost;
         if (!btnf_play) {
             time_start = hold();
         }
