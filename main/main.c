@@ -5,7 +5,9 @@
  */
 
 #include <stdio.h>
-#include "hardware/gpio.h"
+#include <stdlib.h>
+#include <pico/stdlib.h>
+#include <hardware/gpio.h>
 #include <hardware/flash.h>
 
 # define FLASH_WRITE_START (PICO_FLASH_SIZE_BYTES - 4096);
