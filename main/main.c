@@ -114,7 +114,7 @@ void led_buzzer(int led, int buzzer, float time, int frequency) {
       sleep_us(delay);
     }
     gpio_put(led, 0);
-    sleep_us(5e5);
+    sleep_us(1e5);
 
 }
 
@@ -246,6 +246,42 @@ int hold() {
     return to_ms_since_boot(get_absolute_time());
 }
 
+void show_result(int nivel) {
+    gpio_put(leds[0], 1);
+    gpio_put(leds[2], 1);
+    sleep_ms(500);
+
+    gpio_put(leds[0], 0);
+    gpio_put(leds[2], 0);
+    sleep_ms(500);
+
+    gpio_put(leds[1], 1);
+    gpio_put(leds[3], 1);
+    sleep_ms(500);
+
+    gpio_put(leds[1], 0);
+    gpio_put(leds[3], 0);
+    sleep_ms(500);
+    
+    for (int i = 0; i < nivel; i++) {
+        int iled = i % 4;
+        gpio_put(leds[iled], 1);
+        sleep_ms(250);
+        gpio_put(leds[iled],0);
+        sleep_ms(250);
+    }
+}
+
+void show_win() {
+    for (int i = 0; i < 4; i++) {
+        gpio_put(leds[i],1);
+    }
+    sleep_ms(500);
+    for (int i = 0; i < 4; i++) {
+        gpio_put(leds[i],0);
+    }
+}
+
 int main() {
 
     stdio_init_all();
@@ -273,11 +309,13 @@ int main() {
         lost = phase(vec_random, nivel+4);
         if (lost) {
             check_record(nivel-1);
+            show_result(nivel);
             nivel = 0;
             btnf_play = 0;
         } else {
+            show_win();
             nivel ++;
         }
-        sleep_ms(2000);
+        sleep_ms(1000);
     }
 }
