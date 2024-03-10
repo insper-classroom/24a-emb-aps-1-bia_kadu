@@ -118,9 +118,9 @@ void led_buzzer(int led, int buzzer, float time, int frequency) {
 
 }
 
-void form_level(int *vec, int nivel, int time_start) {
+void form_level(int *vec[], int nivel, int time_start) {
     int i;
-    int j;
+    short j;
     if (nivel == 0){
         srand(time_start);
 
@@ -145,8 +145,7 @@ void form_level(int *vec, int nivel, int time_start) {
     }
 }
 
-int phase(int vec[], int n) {
-    int phase_on = 1;
+int phase(int *vec[], int n) {
     int count = 0;
 
     btnf_red = 0;
@@ -155,7 +154,7 @@ int phase(int vec[], int n) {
     btnf_blue = 0;
 
     int j;
-    while (phase_on) {
+    while (true) {
         j = vec[count];
 
         if (btnf_red) {
@@ -165,7 +164,7 @@ int phase(int vec[], int n) {
             if (leds[j] != LED_RED) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
-                return 1;
+                return true;
             }
             count++;
         }
@@ -177,7 +176,7 @@ int phase(int vec[], int n) {
             if (leds[j] != LED_YELLOW) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
-                return 1;
+                return true;
             }
             count++;
         }
@@ -189,7 +188,7 @@ int phase(int vec[], int n) {
             if (leds[j] != LED_GREEN) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
-                return 1;
+                return true;
             }
             count++;
         }
@@ -201,14 +200,14 @@ int phase(int vec[], int n) {
             if (leds[j] != LED_BLUE) {
                 printf("Voce perdeu \n");
                 printf("%d", j);
-                return 1;
+                return true;
             }
             count++;
         }
 
         if (count == n) {
             printf("Voce ganhou esse nivel %d \n", n-4);
-            return 0;
+            return false;
         }
     }
 }
@@ -262,7 +261,7 @@ int main() {
     gpio_set_irq_enabled(BTN_YELLOW, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(BTN_PLAY, GPIO_IRQ_EDGE_FALL, true);
 
-    int lost;
+    bool lost;
     int nivel = 0;
     int time_start;
     int vec_random[100];
