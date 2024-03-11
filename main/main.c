@@ -13,6 +13,15 @@
 # define FLASH_WRITE_START (PICO_FLASH_SIZE_BYTES - 4096);
 # define FLASH_READ_START (PICO_FLASH_SIZE_BYTES - 4096 + XIP_BASE);
 
+#define NOTE_FS3 185
+#define NOTE_E3 165
+#define NOTE_B2 123
+
+#define NOTE_FS5 740
+#define NOTE_E5 659
+#define NOTE_B4 494
+#define NOTE_AS5 932
+
 const int BTN_RED = 26;
 const int BTN_BLUE = 4;
 const int BTN_GREEN = 7;
@@ -110,18 +119,37 @@ int64_t alarm_callback(alarm_id_t id, void *user_data) {
     return 0;
 }
 
+void play_buzzer(int buzzer, float time, int frequency) {
+    int delay = 1e6 / (2*frequency);
+    for(int i = 0; i < time * frequency; i++) {
+        gpio_put(buzzer, 1);
+        sleep_us(delay);
+        gpio_put(buzzer, 0);
+        sleep_us(delay);
+    }
+}
+
 void led_buzzer(int led, int buzzer, float time, int frequency) {
     gpio_put(led, 1);
-    int delay = 1e6/(2*frequency);
-    for (int i = 0; i < time*frequency; i++) {
-      gpio_put(buzzer, 1);
-      sleep_us(delay);
-      gpio_put(buzzer, 0);
-      sleep_us(delay);
-    }
+    play_buzzer(buzzer, time, frequency);
     gpio_put(led, 0);
     sleep_us(1e5);
+}
 
+void play_lost() {
+    play_buzzer(BUZZER, 0.25, NOTE_FS5);
+    sleep_ms(0.3*0.25);
+    play_buzzer(BUZZER, 0.25, NOTE_E5);
+    sleep_ms(0.3*0.25);
+    play_buzzer(BUZZER, 1, NOTE_B4);
+    sleep_ms(0.3*1);
+}
+
+void play_win() {
+    play_buzzer(BUZZER, 0.25, NOTE_FS5);
+    sleep_ms(0.3*0.25);
+    play_buzzer(BUZZER, 0.5, NOTE_AS5);
+    sleep_ms(0.3*0.5);
 }
 
 void form_level(int vec[], int nivel, int time_start) {
@@ -276,19 +304,19 @@ int hold() {
 void show_result(int nivel) {
     gpio_put(leds[0], 1);
     gpio_put(leds[2], 1);
-    sleep_ms(500);
+    sleep_ms(250);
 
     gpio_put(leds[0], 0);
     gpio_put(leds[2], 0);
-    sleep_ms(500);
+    sleep_ms(250);
 
     gpio_put(leds[1], 1);
     gpio_put(leds[3], 1);
-    sleep_ms(500);
+    sleep_ms(250);
 
     gpio_put(leds[1], 0);
     gpio_put(leds[3], 0);
-    sleep_ms(500);
+    sleep_ms(250);
     
     for (int i = 0; i < nivel; i++) {
         int iled = i % 4;
@@ -337,10 +365,12 @@ int main() {
         if (lost) {
             check_record(nivel-1);
             show_result(nivel);
+            play_lost();
             nivel = 0;
             btnf_play = 0;
         } else {
             show_win();
+            play_win();
             nivel ++;
         }
         sleep_ms(1000);
