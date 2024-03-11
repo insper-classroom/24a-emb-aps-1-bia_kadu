@@ -161,10 +161,8 @@ void form_level(int vec[], int nivel, int time_start) {
         for (i = 0; i < 4; i++) {
             j = rand() %4;
             vec[i] = j;
-            printf("%d", j);
             led_buzzer(leds[j], BUZZER, time, fs[j]);
         }
-        printf("\n");
 
     } else {
         j = rand() %4;
@@ -172,10 +170,8 @@ void form_level(int vec[], int nivel, int time_start) {
 
         for (i = 0; i < 4+nivel; i++) {
             j = vec[i];
-            printf("%d", j);
             led_buzzer(leds[j], BUZZER, time, fs[j]);
         }
-        printf("\n");
     }
 }
 
@@ -189,78 +185,70 @@ int phase(const int vec[], int n) {
     btnf_blue = 0;
 
     alarm_id_t alarm = 0;
-    alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
+    alarm = add_alarm_in_ms(3000, alarm_callback, NULL, false);
 
     while (true) {
         int j = vec[count];
 
         if (btnf_red) {
-            printf("red");
             led_buzzer(LED_RED, BUZZER, time, f_red);
             btnf_red = 0;
             if (leds[j] != LED_RED) {
                 printf("Voce perdeu \n");
-                printf("%d", j);
                 return true;
             } else if (!timer_fired) {
                 cancel_alarm(alarm);
-                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
+                alarm = add_alarm_in_ms(3000, alarm_callback, NULL, false);
             }
             count++;
         }
 
         else if (btnf_yellow) {
-            printf("yellow");
             led_buzzer(LED_YELLOW, BUZZER, time, f_yellow);
             btnf_yellow = 0;
             if (leds[j] != LED_YELLOW) {
                 printf("Voce perdeu \n");
-                printf("%d", j);
                 return true;
             } else if (!timer_fired) {
                 cancel_alarm(alarm);
-                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
+                alarm = add_alarm_in_ms(3000, alarm_callback, NULL, false);
             }
             count++;
         }
 
         else if (btnf_green) {
-            printf("green");
             led_buzzer(LED_GREEN, BUZZER, time, f_green);
             btnf_green = 0;
             if (leds[j] != LED_GREEN) {
                 printf("Voce perdeu \n");
-                printf("%d", j);
                 return true;
             } else if (!timer_fired) {
                 cancel_alarm(alarm);
-                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
+                alarm = add_alarm_in_ms(3000, alarm_callback, NULL, false);
             }
             count++;
         }
 
         else if (btnf_blue) {
-            printf("blue");
             led_buzzer(LED_BLUE, BUZZER, time, f_blue);
             btnf_blue = 0;
             if (leds[j] != LED_BLUE) {
                 printf("Voce perdeu \n");
-                printf("%d", j);
                 return true;
             } else if (!timer_fired) {
                 cancel_alarm(alarm);
-                alarm = add_alarm_in_ms(10000, alarm_callback, NULL, false);
+                alarm = add_alarm_in_ms(3000, alarm_callback, NULL, false);
             }
             count++;
         }
 
         if (timer_fired) {
-            printf("TImer: Voce perdeu");
+            printf("Timer: Voce perdeu\n");
             return true;
         }
 
         if (count == n) {
-            printf("Voce ganhou esse nivel %d \n", n-4);
+            printf("Voce ganhou esse nivel \n");
             return false;
         }
     }
@@ -280,7 +268,6 @@ void check_record(int nivel) {
 
         flash_range_program (PICO_FLASH_SIZE_BYTES - 4096, (const uint8_t*)record, FLASH_PAGE_SIZE);
 
-        printf("salvo \n");
         printf("Novo recorde: %s \n", flashStr);
     }
 }
@@ -317,6 +304,8 @@ void show_result(int nivel) {
     gpio_put(leds[1], 0);
     gpio_put(leds[3], 0);
     sleep_ms(250);
+
+    play_lost();
     
     for (int i = 0; i < nivel; i++) {
         int iled = i % 4;
@@ -365,7 +354,7 @@ int main() {
         if (lost) {
             check_record(nivel-1);
             show_result(nivel);
-            play_lost();
+            
             nivel = 0;
             btnf_play = 0;
         } else {
